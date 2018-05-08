@@ -73,11 +73,13 @@ DIST_SUBDIRS = doc test
 dist_man_MANS = doc/pgbouncer.1 doc/pgbouncer.5
 
 # files in tgz
-	     configure configure.ac \
-	     debian/compat debian/changelog debian/control debian/rules debian/copyright \
+EXTRA_DIST = AUTHORS COPYRIGHT Makefile config.mak.in config.sub config.guess \
+	     install-sh autogen.sh configure configure.ac \
+ 	     debian/compat debian/changelog debian/control debian/rules debian/copyright \
+	     etc/mkauth.py etc/example.debian.init.sh \
 	     test/test.sh test/userlist.txt etc/example.debian.init.sh \
-	     win32/Makefile \
-	     $(LIBUSUAL_DIST)
+ 	     win32/Makefile \
+ 	     $(LIBUSUAL_DIST)
 
 # libusual files (FIXME: list should be provided by libusual...)
 LIBUSUAL_DIST = $(filter-out %/config.h, $(sort $(wildcard \
