@@ -51,7 +51,7 @@ pgbouncer_SOURCES = \
 	ap/libunixsocket.c \
 	ap/util.c \
 	ap/Packet.c \
-	ap/auth_ldap.c
+	ap/auth_ldap.c \
     include/pycall.h \
     include/route_connection.h \
     include/rewrite_query.h 
