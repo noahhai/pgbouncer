@@ -23,9 +23,9 @@ pgbouncer_SOURCES = \
 	src/system.c \
 	src/takeover.c \
 	src/util.c \
-    src/pycall.c \
-    src/route_connection.c \
-    src/rewrite_query.c \
+	src/pycall.c \
+	src/route_connection.c \
+	src/rewrite_query.c \
 	src/varcache.c \
 	include/admin.h \
 	include/bouncer.h \
@@ -52,16 +52,17 @@ pgbouncer_SOURCES = \
 	ap/util.c \
 	ap/Packet.c \
 	ap/auth_ldap.c \
-    include/pycall.h \
-    include/route_connection.h \
-    include/rewrite_query.h 
+	include/pycall.h \
+	include/route_connection.h \
+	include/rewrite_query.h 
 
 python_CPPFLAGS = -I/usr/include/python2.7 -I/usr/include/python2.7 
-pgbouncer_CPPFLAGS = -Iinclude $(CARES_CFLAGS) $(TLS_CPPFLAGS) $(python_CPPFLAGS)
+python_LDFLAGS = -lpthread -ldl -lutil -lm -lpython2.7 -Xlinker -export-dynamic
+
 
 COMMON_CFLAGS = -g  -Wall -DLDAP_DEPRECATED
-pgbouncer_CPPFLAGS = -Iap -Iinclude $(CARES_CFLAGS) $(COMMON_CFLAGS)
-pgbouncer_LDFLAGS = -L../deps/lib -Wl,-rpath=\$$ORIGIN/../lib
+pgbouncer_CPPFLAGS = -Iap -Iinclude $(CARES_CFLAGS) $(COMMON_CFLAGS) $(python_CPPFLAGS)
+pgbouncer_LDFLAGS = -L../deps/lib -Wl,-rpath=\$$ORIGIN/../lib, $(TLS_LDFLAGS)
 STATICLIB = -lssl -lldap -llber -lssl -lcrypto
 
 pgbouncer_LIBS = -Wl,-Bstatic $(STATICLIB) -Wl,-Bdynamic -ldl
@@ -104,8 +105,7 @@ LIBUSUAL_DIST = $(filter-out %/config.h, $(sort $(wildcard \
 # win32
 #
 
-python_LDFLAGS = -lpthread -ldl -lutil -lm -lpython2.7 -Xlinker -export-dynamic
-pgbouncer_LDFLAGS := $(TLS_LDFLAGS) 
+#pgbouncer_LDFLAGS := $(TLS_LDFLAGS) 
 pgbouncer_LDADD := $(CARES_LIBS) $(TLS_LIBS) $(LIBS) $(python_LDFLAGS)
 LIBS :=
 
