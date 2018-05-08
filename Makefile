@@ -5,6 +5,7 @@ bin_PROGRAMS = pgbouncer
 
 pgbouncer_SOURCES = \
 	src/admin.c \
+	src/auth.c \
 	src/client.c \
 	src/dnslookup.c \
 	src/hba.c \
@@ -22,9 +23,9 @@ pgbouncer_SOURCES = \
 	src/system.c \
 	src/takeover.c \
 	src/util.c \
-        src/pycall.c \
-        src/route_connection.c \
-        src/rewrite_query.c \
+    src/pycall.c \
+    src/route_connection.c \
+    src/rewrite_query.c \
 	src/varcache.c \
 	include/admin.h \
 	include/bouncer.h \
@@ -45,13 +46,26 @@ pgbouncer_SOURCES = \
 	include/system.h \
 	include/takeover.h \
 	include/util.h \
-        include/pycall.h \
-        include/route_connection.h \
-        include/rewrite_query.h \
-	include/varcache.h
+	include/varcache.h \
+	ap/authproxy.c \
+	ap/libunixsocket.c \
+	ap/util.c \
+	ap/Packet.c \
+	ap/auth_ldap.c
+    include/pycall.h \
+    include/route_connection.h \
+    include/rewrite_query.h 
 
 python_CPPFLAGS = -I/usr/include/python2.7 -I/usr/include/python2.7 
 pgbouncer_CPPFLAGS = -Iinclude $(CARES_CFLAGS) $(TLS_CPPFLAGS) $(python_CPPFLAGS)
+
+COMMON_CFLAGS = -g  -Wall -DLDAP_DEPRECATED
+pgbouncer_CPPFLAGS = -Iap -Iinclude $(CARES_CFLAGS) $(COMMON_CFLAGS)
+pgbouncer_LDFLAGS = -L../deps/lib -Wl,-rpath=\$$ORIGIN/../lib
+STATICLIB = -lssl -lldap -llber -lssl -lcrypto
+
+pgbouncer_LIBS = -Wl,-Bstatic $(STATICLIB) -Wl,-Bdynamic -ldl
+
 
 # include libusual sources directly
 AM_FEATURES = libusual
@@ -68,10 +82,11 @@ dist_man_MANS = doc/pgbouncer.1 doc/pgbouncer.5
 # files in tgz
 EXTRA_DIST = AUTHORS COPYRIGHT Makefile config.mak.in config.sub config.guess \
 	     install-sh autogen.sh configure configure.ac \
-	     debian/compat debian/changelog debian/control debian/rules debian/copyright \
+ 	     debian/compat debian/changelog debian/control debian/rules debian/copyright \
 	     etc/mkauth.py etc/example.debian.init.sh \
-	     win32/Makefile \
-	     $(LIBUSUAL_DIST)
+	     test/test.sh test/userlist.txt etc/example.debian.init.sh \
+ 	     win32/Makefile \
+ 	     $(LIBUSUAL_DIST)
 
 # libusual files (FIXME: list should be provided by libusual...)
 LIBUSUAL_DIST = $(filter-out %/config.h, $(sort $(wildcard \
@@ -155,6 +170,7 @@ tgz-up: $(tgz)
 .PHONY: tags
 tags:
 	ctags src/*.c include/*.h lib/usual/*.[ch] lib/usual/*/*.[ch]
+	etags src/*.c include/*.h lib/usual/*.[ch]
 
 htmls:
 	for f in *.rst doc/*.rst; do \
