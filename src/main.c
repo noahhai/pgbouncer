@@ -569,6 +569,8 @@ static void go_daemon(void)
 
 static void remove_pidfile(void)
 {
+	if(childpid != 0)
+		kill(childpid, SIGKILL);
 	if (cf_pidfile) {
 		if (cf_pidfile[0])
 			unlink(cf_pidfile);
