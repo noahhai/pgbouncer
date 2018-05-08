@@ -498,8 +498,11 @@ static bool handle_client_startup(PgSocket *client, PktHdr *pkt)
 		disconnect_client(client, true, "client sent partial pkt in startup phase");
 		return false;
 	}
-
-	if (client->wait_for_welcome || client->wait_for_auth) {
+	if (client->state == CL_WAITING_LOGIN) {
+		sbuf_prepare_skip(sbuf, pkt->len);
+		return true;
+	}
+	if( !need_external_auth(client) && (client->wait_for_welcome)) {
 		if  (finish_client_login(client)) {
 			/* the packet was already parsed */
 			sbuf_prepare_skip(sbuf, pkt->len);
@@ -569,14 +572,22 @@ static bool handle_client_startup(PgSocket *client, PktHdr *pkt)
 		}
 
 		ok = mbuf_get_string(&pkt->data, &passwd);
-
-		if (ok) {
-			if (client->client_auth_type == AUTH_PAM) {
-				if (!sbuf_pause(&client->sbuf)) {
-					disconnect_client(client, true, "pause failed");
+		if (ok && need_external_auth(client)) {
+			if(PrepareServerLogin(client)) {
+				if(async_auth_client(client,passwd))
+					break;
+				else {
+					disconnect_client(client, true, "Failed to prepare for external auth");
 					return false;
 				}
-				pam_auth_begin(client, passwd);
+					
+			}
+			else {
+				return false;
+			}
+		}
+		if (ok && check_client_passwd(client, passwd)) {
+			if (!finish_client_login(client))
 				return false;
 			}
 

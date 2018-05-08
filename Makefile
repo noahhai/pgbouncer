@@ -5,6 +5,7 @@ bin_PROGRAMS = pgbouncer
 
 pgbouncer_SOURCES = \
 	src/admin.c \
+	src/auth.c \
 	src/client.c \
 	src/dnslookup.c \
 	src/hba.c \
@@ -42,9 +43,22 @@ pgbouncer_SOURCES = \
 	include/system.h \
 	include/takeover.h \
 	include/util.h \
-	include/varcache.h
+	include/varcache.h \
+	ap/authproxy.c \
+	ap/libunixsocket.c \
+	ap/util.c \
+	ap/Packet.c \
+	ap/auth_ldap.c
 
 pgbouncer_CPPFLAGS = -Iinclude $(CARES_CFLAGS) $(TLS_CPPFLAGS)
+
+COMMON_CFLAGS = -g  -Wall -DLDAP_DEPRECATED
+pgbouncer_CPPFLAGS = -Iap -Iinclude $(CARES_CFLAGS) $(COMMON_CFLAGS)
+pgbouncer_LDFLAGS = -L../deps/lib -Wl,-rpath=\$$ORIGIN/../lib
+STATICLIB = -lssl -lldap -llber -lssl -lcrypto
+
+pgbouncer_LIBS = -Wl,-Bstatic $(STATICLIB) -Wl,-Bdynamic -ldl
+
 
 # include libusual sources directly
 AM_FEATURES = libusual
@@ -59,10 +73,9 @@ DIST_SUBDIRS = doc test
 dist_man_MANS = doc/pgbouncer.1 doc/pgbouncer.5
 
 # files in tgz
-EXTRA_DIST = AUTHORS COPYRIGHT Makefile config.mak.in config.sub config.guess \
-	     install-sh autogen.sh configure configure.ac \
+	     configure configure.ac \
 	     debian/compat debian/changelog debian/control debian/rules debian/copyright \
-	     etc/mkauth.py etc/example.debian.init.sh \
+	     test/test.sh test/userlist.txt etc/example.debian.init.sh \
 	     win32/Makefile \
 	     $(LIBUSUAL_DIST)
 
@@ -147,6 +160,7 @@ tgz-up: $(tgz)
 .PHONY: tags
 tags:
 	ctags src/*.c include/*.h lib/usual/*.[ch] lib/usual/*/*.[ch]
+	etags src/*.c include/*.h lib/usual/*.[ch]
 
 htmls:
 	for f in *.rst doc/*.rst; do \
