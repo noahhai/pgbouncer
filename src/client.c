@@ -596,12 +596,11 @@ static bool handle_client_startup(PgSocket *client, PktHdr *pkt)
 		}
 
 		if (ok && check_client_passwd(client, passwd)) {
-				if (!finish_client_login(client))
-					return false;
-			} else {
-				disconnect_client(client, true, "Auth failed");
+			if (!finish_client_login(client))
 				return false;
-			}
+		} else {
+			disconnect_client(client, true, "Auth failed");
+			return false;
 		}
 		
 		break;
