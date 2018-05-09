@@ -56,16 +56,17 @@ pgbouncer_SOURCES = \
 	include/route_connection.h \
 	include/rewrite_query.h 
 
+COMMON_CFLAGS = -g  -Wall -DLDAP_DEPRECATED
+
 python_CPPFLAGS = -I/usr/include/python2.7 -I/usr/include/python2.7 
 python_LDFLAGS = -lpthread -ldl -lutil -lm -lpython2.7 -Xlinker -export-dynamic
 
-
-COMMON_CFLAGS = -g  -Wall -DLDAP_DEPRECATED
 pgbouncer_CPPFLAGS = -Iap -Iinclude $(CARES_CFLAGS) $(COMMON_CFLAGS) $(python_CPPFLAGS)
-pgbouncer_LDFLAGS = -L../deps/lib -Wl,-rpath=\$$ORIGIN/../lib, $(TLS_LDFLAGS)
+pgbouncer_LDFLAGS := $(TLS_LDFLAGS) 
+#pgbouncer_LDFLAGS = -L../deps/lib -Wl,-rpath=\$$ORIGIN/../lib
 STATICLIB = -lssl -lldap -llber -lssl -lcrypto
 
-pgbouncer_LIBS = -Wl,-Bstatic $(STATICLIB) -Wl,-Bdynamic -ldl
+pgbouncer_LIBS = -Wl,-I/etc -I/usr/bin -Bstatic $(STATICLIB) -Wl,-Bdynamic -ldl
 
 
 # include libusual sources directly
@@ -105,7 +106,7 @@ LIBUSUAL_DIST = $(filter-out %/config.h, $(sort $(wildcard \
 # win32
 #
 
-#pgbouncer_LDFLAGS := $(TLS_LDFLAGS) 
+
 pgbouncer_LDADD := $(CARES_LIBS) $(TLS_LIBS) $(LIBS) $(python_LDFLAGS)
 LIBS :=
 
