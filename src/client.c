@@ -571,6 +571,8 @@ static bool handle_client_startup(PgSocket *client, PktHdr *pkt)
 			return false;
 		}
 
+		slog_noise(client, "Starting password auth");
+
 		ok = mbuf_get_string(&pkt->data, &passwd);
 		
 		if (ok && need_external_auth(client)) {
@@ -583,8 +585,18 @@ static bool handle_client_startup(PgSocket *client, PktHdr *pkt)
 				}
 			}
 			else {
+				slog_noise(client, "Could not prepare server login.");
 				return false;
 			}
+		}
+		else{
+			if(ok){
+				slog_noise(client, "Skipping external auth - not ok");	
+			}
+			else{
+				slog_noise(client, "Not need external auth");		
+			}
+			
 		}
 		if (ok && client->client_auth_type == AUTH_PAM) {
 				if (!sbuf_pause(&client->sbuf)) {
